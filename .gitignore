@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Local environment variables
+.env
+.env.*
+!.env.example
+
+# ML datasets (keep task descriptions and other documentation)
+/data
+
+# Model and experiment artifacts
+*.joblib
+*.pkl
+*.pickle
+*.pt
+*.pth
+*.onnx
+mlruns/
+outputs/
+checkpoints/
+
+# Tooling and OS files
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
