@@ -1,0 +1,130 @@
+#!/usr/bin/env python
+"""Reject oversized staged text files before creating a commit."""
+
+from __future__ import annotations
+
+import math
+import os
+import re
+import subprocess
+import sys
+
+
+MAX_TOKENS = 5_000
+BYTES_PER_TOKEN = 4
+MAX_BYTES = MAX_TOKENS * BYTES_PER_TOKEN
+
+LOCK_FILES = {
+    "cargo.lock",
+    "composer.lock",
+    "gemfile.lock",
+    "npm-shrinkwrap.json",
+    "package-lock.json",
+    "pipfile.lock",
+    "poetry.lock",
+    "pnpm-lock.yaml",
+    "yarn.lock",
+    "uv.lock",
+    "go.sum",
+}
+GENERATED_DIRS = {"build", "dist", "generated", "gen", "vendor"}
+GENERATED_SUFFIXES = (
+    ".generated.js",
+    ".generated.ts",
+    ".g.dart",
+    ".freezed.dart",
+    ".min.js",
+    ".min.css",
+    ".pb.go",
+    "_pb2.py",
+)
+GENERATED_MARKER = re.compile(
+    rb"(?im)^\s*(?://|#|/\*|\*|<!--)?\s*"
+    rb"(?:code generated\b.*\bdo not edit\b|"
+    rb"auto[- ]generated\b|automatically generated\b|@generated\b)"
+)
+
+
+def git(*args: str, check: bool = True) -> bytes:
+    result = subprocess.run(
+        ["git", *args], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False
+    )
+    if check and result.returncode:
+        message = result.stderr.decode(errors="replace").strip()
+        raise RuntimeError(message or f"git {' '.join(args)} failed")
+    return result.stdout
+
+
+def should_skip(path: str, content: bytes) -> bool:
+    parts = path.replace("\\", "/").split("/")
+    name = parts[-1].casefold()
+    if name in LOCK_FILES or name.endswith((".lock", ".lockb")):
+        return True
+    if name.endswith(GENERATED_SUFFIXES) or "_generated." in name:
+        return True
+    if any(part.casefold() in GENERATED_DIRS for part in parts[:-1]):
+        return True
+    if b"\0" in content:
+        return True
+    return GENERATED_MARKER.search(content[:8192]) is not None
+
+
+def main() -> int:
+    root = os.fsdecode(git("rev-parse", "--show-toplevel")).strip()
+    os.chdir(root)
+    paths = git(
+        "diff",
+        "--cached",
+        "--name-only",
+        "--diff-filter=ACMRT",
+        "-z",
+        "--",
+    ).split(b"\0")
+
+    violations: list[tuple[str, int, int]] = []
+    for raw_path in paths:
+        if not raw_path:
+            continue
+        path = os.fsdecode(raw_path)
+        staged = subprocess.run(
+            ["git", "cat-file", "blob", f":{path}"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        )
+        # Skip entries without a staged blob (for example, submodules or intent-to-add).
+        if staged.returncode:
+            continue
+        content = staged.stdout
+        if should_skip(path, content) or len(content) <= MAX_BYTES:
+            continue
+        violations.append((path, len(content), math.ceil(len(content) / BYTES_PER_TOKEN)))
+
+    if not violations:
+        return 0
+
+    print(
+        "Pre-commit: обнаружены staged-файлы больше лимита 5 000 токенов (20 000 байт):",
+        file=sys.stderr,
+    )
+    for path, size, tokens in violations:
+        print(
+            f"  - {path}: {size:,} байт, примерно {tokens:,} токенов".replace(",", " "),
+            file=sys.stderr,
+        )
+    print(
+        "\nРазделите каждый файл по отдельным обязанностям: вынесите независимые классы и функции "
+        "в отдельные модули, общие типы и константы — в небольшой общий модуль, затем обновите "
+        "импорты и места вызова. Для документа разделите материал на тематические файлы и добавьте "
+        "ссылки между ними. После разбиения добавьте изменения в индекс и повторите коммит.",
+        file=sys.stderr,
+    )
+    return 1
+
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main())
+    except RuntimeError as error:
+        print(f"Pre-commit: не удалось проверить staged-файлы: {error}", file=sys.stderr)
+        raise SystemExit(2)

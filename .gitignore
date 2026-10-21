@@ -36,3 +36,5 @@ checkpoints/
 .vscode/
 .DS_Store
 Thumbs.db
+# Local baseline verification artifacts
+.test-tmp/

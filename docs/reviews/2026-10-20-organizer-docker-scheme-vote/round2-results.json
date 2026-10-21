@@ -1,0 +1,60 @@
+{
+  "round": 2,
+  "votes": [
+    {
+      "candidate": "Y",
+      "votes": 3
+    }
+  ],
+  "selected_base": "Y",
+  "unconditional_acceptance": false,
+  "status": "requires_explicit_revision_and_ratification",
+  "ballots": [
+    {
+      "voter": "A",
+      "choice": "Y",
+      "ranking": [
+        "Y",
+        "X",
+        "Z"
+      ],
+      "selected_blockers": [
+        "Y: добавить ограниченное разрешение неизвестного контракта/точной метрики с успешной и неуспешной ветками, без внешних источников и proxy.",
+        "Y: сделать feedback чисто информационным, весь запуск новых действий пропускать через единый ресурсный gate; отработать дедлайн без нового fit/confirmation при недостатке времени.",
+        "Y: заменить сокращения на точные OPENAI_MODEL / OPENAI_API_KEY / OPENAI_BASE_URL.",
+        "Y: до любого refit/выхода проверить и атомарно восстановить CSV выбранного финалиста; при ошибке refit сохранить именно этот CSV.",
+        "Y: после неуспешного resolver точной метрики вести ветку только резерва непосредственно к проверке/cleanup, не в refit неизвестного финалиста."
+      ]
+    },
+    {
+      "voter": "B",
+      "choice": "Y",
+      "ranking": [
+        "Y",
+        "X",
+        "Z"
+      ],
+      "selected_blockers": [
+        "Y: добавить ограниченный resolver контракта/метрики с реальным успешным возвратом, а не немедленный R7 → R23; без proxy и без произвольного кода evaluator от LLM.",
+        "Y: исключить обход R10 по feedback и уточнить supvervisor/finalization при soft-stop против hard deadline; каждый новый шаг остаётся внутри общего resource/time gate.",
+        "Y: заменить сокращённые env в R8 на точные OPENAI_MODEL / OPENAI_API_KEY / OPENAI_BASE_URL.",
+        "Y: пустой shortlist и неизвестная метрика после исчерпания resolver завершаются с готовым резервом без confirmation и refit несуществующего финалиста."
+      ]
+    },
+    {
+      "voter": "C",
+      "choice": "Y",
+      "ranking": [
+        "Y",
+        "X",
+        "Z"
+      ],
+      "selected_blockers": [
+        "Y: добавить bounded resolver выходного контракта и точной метрики/evaluator до честного отказа; не менять неизвестную метрику на proxy.",
+        "Y: исключить управляющий обход R10 через R16 -> R11 и обеспечить ресурсную проверку перед каждым новым API/repair/compile/execute/predict/финальным шагом.",
+        "Y: заменить сокращения в R8 на OPENAI_MODEL / OPENAI_API_KEY / OPENAI_BASE_URL.",
+        "Y: деградированная ветка без evaluator не должна допускать refit неопределённого финалиста."
+      ]
+    }
+  ]
+}

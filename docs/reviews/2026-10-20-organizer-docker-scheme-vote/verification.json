@@ -1,0 +1,24 @@
+{
+  "source_integrity": [
+    {
+      "path": "docs/Альфа_Хак_AutoML.md",
+      "unchanged": true
+    },
+    {
+      "path": "requirement.txt",
+      "unchanged": true
+    },
+    {
+      "path": "baseline.py",
+      "unchanged": true
+    }
+  ],
+  "original_proposals_unchanged": true,
+  "round2_votes_Y": 3,
+  "ratifications": 3,
+  "independent_final_reviewers": 2,
+  "selected_scheme_sha256": "34C235025C27DBFAF9DF4C3A5D747B98AADF52F48DE8B6EE8EB880AC160068A1",
+  "report_diagram_matches": true,
+  "basic_node_edge_check": "35 nodes, 35 edge lines, zero undefined nodes",
+  "docker_api_ml_run": false
+}
